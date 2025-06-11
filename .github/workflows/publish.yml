@@ -17,6 +17,7 @@ jobs:
       - name: Extract and validate name
         id: check_name
         run: |
+          TAG="${GITHUB_REF#refs/tags/}"
           NAME="${TAG%%/*}"
           echo $NAME
           echo "name=$NAME" >> $GITHUB_OUTPUT
