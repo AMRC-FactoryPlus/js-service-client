@@ -23,17 +23,17 @@ jobs:
           LIBRARY_NAMES=("js-service-client" "js-edge-driver")
           found=false
           for item in "${LIBRARY_NAMES[@]}"; do
-            if [[ "$item" == "$search_string" ]]; then
+            if [[ "$item" == "$NAME" ]]; then
               found=true
               break
             fi
           done
           if [[ "$found" == true ]]; then
-            echo "String '$search_string' exists in the array."
+            echo "String '$NAME' exists in the array."
             echo "name=$NAME" >> $GITHUB_OUTPUT
             echo "is_valid=true" >> $GITHUB_OUTPUT
           else
-            echo "String '$search_string' does NOT exist in the array."
+            echo "String '$NAME' does NOT exist in the array."
             echo "is_valid=false" >> $GITHUB_OUTPUT
           fi
 
