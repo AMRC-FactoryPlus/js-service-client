@@ -14,19 +14,23 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Extract and validate name
+        id: check_name
+        run: |
+          NAME="${TAG%%/*}"
+          echo $NAME
+          echo "name=$NAME" >> $GITHUB_OUTPUT
+
       - name: Extract and validate version
         id: check_version
         run: |
           TAG="${GITHUB_REF#refs/tags/}"
-          NAME="${TAG%%/*}"
-          PATTERN='^${NAME}\/v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$'
+          PATTERN='^${{ steps.check_name.outputs.name }}\/v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$'
           echo "Release tag: $TAG"
-          
           if [[ "$TAG" =~ $PATTERN ]]; then
             echo "Valid tag format."
             echo "is_valid=true" >> $GITHUB_OUTPUT
             echo "version=${TAG#js-service-client/}" >> $GITHUB_OUTPUT
-            echo "name=$NAME" >> $GITHUB_OUTPUT
           else
             echo "Invalid tag format."
             echo "is_valid=false" >> $GITHUB_OUTPUT
