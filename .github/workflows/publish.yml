@@ -24,7 +24,7 @@ jobs:
           if [[ "$TAG" =~ $PATTERN ]]; then
             echo "Valid tag format."
             echo "is_valid=true" >> $GITHUB_OUTPUT
-            echo "version=${TAG#name/}" >> $GITHUB_OUTPUT
+            echo "version=${TAG#js-service-client/}" >> $GITHUB_OUTPUT
           else
             echo "Invalid tag format."
             echo "is_valid=false" >> $GITHUB_OUTPUT
