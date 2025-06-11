@@ -6,8 +6,6 @@ env:
 on:
   release:
     types: [published]
-    tags:
-     - 'js-[-a-z]*/v[0-9]+.[0-9]+.[0-9]+(-[a-z]+.[0-9]+)'
 
 jobs:
   publish:
@@ -49,7 +47,7 @@ jobs:
           if [[ "$TAG" =~ $PATTERN ]]; then
             echo "Valid tag format."
             echo "is_valid=true" >> $GITHUB_OUTPUT
-            echo "version=${TAG#js-service-client/}" >> $GITHUB_OUTPUT
+            echo "version=${TAG#${{ steps.check_name.outputs.name }}/v}" >> $GITHUB_OUTPUT
           else
             echo "Invalid tag format."
             echo "is_valid=false" >> $GITHUB_OUTPUT
