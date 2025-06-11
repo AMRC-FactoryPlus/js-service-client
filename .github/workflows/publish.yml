@@ -20,9 +20,25 @@ jobs:
           TAG="${GITHUB_REF#refs/tags/}"
           NAME="${TAG%%/*}"
           echo $NAME
-          echo "name=$NAME" >> $GITHUB_OUTPUT
+          LIBRARY_NAMES=("js-service-client" "js-edge-driver")
+          found=false
+          for item in "${LIBRARY_NAMES[@]}"; do
+            if [[ "$item" == "$search_string" ]]; then
+              found=true
+              break
+            fi
+          done
+          if [[ "$found" == true ]]; then
+            echo "String '$search_string' exists in the array."
+            echo "name=$NAME" >> $GITHUB_OUTPUT
+            echo "is_valid=true" >> $GITHUB_OUTPUT
+          else
+            echo "String '$search_string' does NOT exist in the array."
+            echo "is_valid=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Extract and validate version
+        if: steps.check_name.outputs.is_valid == 'true'
         id: check_version
         run: |
           TAG="${GITHUB_REF#refs/tags/}"
@@ -38,17 +54,17 @@ jobs:
           fi
 
       - name: Set up Node.js
-        if: steps.check_version.outputs.is_valid == 'true'
+        if: steps.check_version.outputs.is_valid == 'true' && steps.check_name.outputs.is_valid == 'true'
         uses: actions/setup-node@v3
         with:
           node-version: '16.x'
 
       - name: Install Dependencies
-        if: steps.check_version.outputs.is_valid == 'true'
+        if: steps.check_version.outputs.is_valid == 'true' && steps.check_name.outputs.is_valid == 'true'
         run: npm install --verbose
 
       - name: Update version in package.json
-        if: steps.check_version.outputs.is_valid == 'true'
+        if: steps.check_version.outputs.is_valid == 'true' && steps.check_name.outputs.is_valid == 'true'
         run: |
           VERSION=${{ steps.check_version.outputs.version }}
           echo "Updating version to: $VERSION"
@@ -56,7 +72,7 @@ jobs:
           mv package.json.tmp package.json
 
       - name: Publish to npm
-        if: steps.check_version.outputs.is_valid == 'true'
+        if: steps.check_version.outputs.is_valid == 'true' && steps.check_name.outputs.is_valid == 'true'
         run: |
           echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
           npm publish --dry-run
