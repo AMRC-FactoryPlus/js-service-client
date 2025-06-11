@@ -6,6 +6,7 @@ env:
 on:
   release:
     types: [published]
+    tags: 'js-[-a-z]*/v[0-9]+.[0-9]+.[0-9]+(-[a-z]+.[0-9]+)'
 
 jobs:
   publish:
