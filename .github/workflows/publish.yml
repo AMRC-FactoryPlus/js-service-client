@@ -14,57 +14,36 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Extract and validate name
-        id: check_name
-        run: |
-          TAG="${GITHUB_REF#refs/tags/}"
-          NAME="${TAG%%/*}"
-          echo $NAME
-          LIBRARY_NAMES=("js-service-client" "js-edge-driver")
-          found=false
-          for item in "${LIBRARY_NAMES[@]}"; do
-            if [[ "$item" == "$NAME" ]]; then
-              found=true
-              break
-            fi
-          done
-          if [[ "$found" == true ]]; then
-            echo "String '$NAME' exists in the array."
-            echo "name=$NAME" >> $GITHUB_OUTPUT
-            echo "is_valid=true" >> $GITHUB_OUTPUT
-          else
-            echo "String '$NAME' does NOT exist in the array."
-            echo "is_valid=false" >> $GITHUB_OUTPUT
-          fi
-
       - name: Extract and validate version
         if: steps.check_name.outputs.is_valid == 'true'
         id: check_version
         run: |
           TAG="${GITHUB_REF#refs/tags/}"
-          PATTERN='^${{ steps.check_name.outputs.name }}\/v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$'
+          NAME="${TAG%%/*}"
+          PATTERN='^js-[-a-z]*\/v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$'
           echo "Release tag: $TAG"
           if [[ "$TAG" =~ $PATTERN ]]; then
             echo "Valid tag format."
             echo "is_valid=true" >> $GITHUB_OUTPUT
             echo "version=${TAG#${{ steps.check_name.outputs.name }}/v}" >> $GITHUB_OUTPUT
+            echo "name=${NAME}" >> $GITHUB_OUTPUT
           else
             echo "Invalid tag format."
             echo "is_valid=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Set up Node.js
-        if: steps.check_version.outputs.is_valid == 'true' && steps.check_name.outputs.is_valid == 'true'
+        if: steps.check_version.outputs.is_valid == 'true' && steps.check_version.outputs.name != null
         uses: actions/setup-node@v3
         with:
           node-version: '16.x'
 
       - name: Install Dependencies
-        if: steps.check_version.outputs.is_valid == 'true' && steps.check_name.outputs.is_valid == 'true'
+        if: steps.check_version.outputs.is_valid == 'true' && steps.check_version.outputs.name != null
         run: npm install --verbose
 
       - name: Update version in package.json
-        if: steps.check_version.outputs.is_valid == 'true' && steps.check_name.outputs.is_valid == 'true'
+        if: steps.check_version.outputs.is_valid == 'true' && steps.check_version.outputs.name != null
         run: |
           VERSION=${{ steps.check_version.outputs.version }}
           echo "Updating version to: $VERSION"
@@ -72,7 +51,7 @@ jobs:
           mv package.json.tmp package.json
 
       - name: Publish to npm
-        if: steps.check_version.outputs.is_valid == 'true' && steps.check_name.outputs.is_valid == 'true'
+        if: steps.check_version.outputs.is_valid == 'true' && steps.check_version.outputs.name != null
         run: |
           echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
           npm publish --dry-run
