@@ -24,7 +24,7 @@ jobs:
           if [[ "$TAG" =~ $PATTERN ]]; then
             echo "Valid tag format."
             echo "is_valid=true" >> $GITHUB_OUTPUT
-            echo "version=${TAG#${{ steps.check_name.outputs.name }}/v}" >> $GITHUB_OUTPUT
+            echo "version=${TAG#${NAME}/v}" >> $GITHUB_OUTPUT
             echo "name=${NAME}" >> $GITHUB_OUTPUT
           else
             echo "Invalid tag format."
@@ -45,6 +45,7 @@ jobs:
         if: steps.check_version.outputs.is_valid == 'true' && steps.check_version.outputs.name != null
         run: |
           VERSION=${{ steps.check_version.outputs.version }}
+          echo "name: ${{steps.check_version.outputs.name}}"
           echo "Updating version to: $VERSION"
           jq ".version = \"$VERSION\"" package.json > package.json.tmp
           mv package.json.tmp package.json
